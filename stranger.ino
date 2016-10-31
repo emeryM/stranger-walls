@@ -8,32 +8,32 @@
 #define MASTER_BRIGHTNESS 15
 
 // position of each letter in led chain
-#define LET_A 0
-#define LET_B 1
-#define LET_C 2
-#define LET_D 3
-#define LET_E 4
-#define LET_F 5
-#define LET_G 6
-#define LET_H 7
-#define LET_I 8
-#define LET_J 9
-#define LET_K 10
-#define LET_L 11
-#define LET_M 12
-#define LET_N 13
-#define LET_O 14
-#define LET_P 15
-#define LET_Q 16
-#define LET_R 17
-#define LET_S 18
-#define LET_T 19
-#define LET_U 20
-#define LET_V 21
-#define LET_W 22
-#define LET_X 23
-#define LET_Y 24
-#define LET_Z 25
+    #define LET_A 25
+    #define LET_B 24
+    #define LET_C 23
+    #define LET_D 22
+    #define LET_E 21
+    #define LET_F 20
+    #define LET_G 19
+    #define LET_H 18
+    #define LET_I 9
+    #define LET_J 10
+    #define LET_K 11
+    #define LET_L 12
+    #define LET_M 13
+    #define LET_N 14
+    #define LET_O 15
+    #define LET_P 16
+    #define LET_Q 17
+    #define LET_R 8
+    #define LET_S 7
+    #define LET_T 6
+    #define LET_U 5
+    #define LET_V 4
+    #define LET_W 3
+    #define LET_X 2
+    #define LET_Y 1
+    #define LET_Z 0
 
 // position of RGB values in color arrays
 #define RED 0
@@ -63,15 +63,23 @@ int rgb_teal[3] = {0,130,130};
 // the color bulb that corresponds to each letter
 int *alpha_colors[26];
 
+// the led in the chain that corresponds to each letter 
+int alpha_map[123];
+
 // user input to spell on wall
 String str;
 
 void setup(){
   // sanity check delay - allows reprogramming if accidently blowing power w/leds
-  delay(2000);
+  FastLED.delay(2000);
+
+  // initialize serial communication
+  Serial.begin(9600);
+  Serial.setTimeout(500);
+  Serial.println("Ready");
   
   // set up leds
-  FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.addLeds<WS2812, DATA_PIN, RGB>(leds, NUM_LEDS);
   FastLED.setBrightness(MASTER_BRIGHTNESS);
   alpha_colors[LET_A] = &rgb_white[0];
   alpha_colors[LET_B] = &rgb_blue[0];
@@ -100,10 +108,32 @@ void setup(){
   alpha_colors[LET_Y] = &rgb_red[0];
   alpha_colors[LET_Z] = &rgb_red[0];
 
-  // initialize serial communication
-  Serial.begin(9600);
-  Serial.setTimeout(500);
-  Serial.println("Ready");
+  alpha_map[97] = LET_A;
+  alpha_map[98] = LET_B;
+  alpha_map[99] = LET_C;
+  alpha_map[100] = LET_D;
+  alpha_map[101] = LET_E;
+  alpha_map[102] = LET_F;
+  alpha_map[103] = LET_G;
+  alpha_map[104] = LET_H;
+  alpha_map[105] = LET_I;
+  alpha_map[106] = LET_J;
+  alpha_map[107] = LET_K;
+  alpha_map[108] = LET_L;
+  alpha_map[109] = LET_M;
+  alpha_map[110] = LET_N;
+  alpha_map[111] = LET_O;
+  alpha_map[112] = LET_P;
+  alpha_map[113] = LET_Q;
+  alpha_map[114] = LET_R;
+  alpha_map[115] = LET_S;
+  alpha_map[116] = LET_T;
+  alpha_map[117] = LET_U;
+  alpha_map[118] = LET_V;
+  alpha_map[119] = LET_W;
+  alpha_map[120] = LET_X;
+  alpha_map[121] = LET_Y;
+  alpha_map[122] = LET_Z;
 
   // blink lights to indicate setup is complete
   show_solid_fill(0,0,0,300);
@@ -132,9 +162,9 @@ void loop() {
       idle_animation = BLINKY;
     }
     else{
-      delay(1500);
+      FastLED.delay(1500);
       spell(str);
-      delay(3000);
+      FastLED.delay(3000);
     }
   }
   idle();
@@ -143,7 +173,7 @@ void loop() {
 void show_solid_fill(int r, int g, int b, int ms){
   fill_solid(leds, NUM_LEDS, CRGB(r,g,b));
   FastLED.show();
-  delay(ms);
+  FastLED.delay(ms);
 }
 
 void flicker_off_strip(){
@@ -157,7 +187,7 @@ void flicker_off_strip(){
 void dim_strip(int denominator, int ms){
   FastLED.setBrightness(MASTER_BRIGHTNESS/denominator);
   FastLED.show();
-  delay(ms);
+  FastLED.delay(ms);
 }
 
 void idle(){
@@ -194,7 +224,7 @@ void rainbow_chase(){
   for (int i = 0; i < 60; ++i){
     fill_rainbow(leds, NUM_LEDS, (i*255)/60, (255/NUM_LEDS));
     FastLED.show();
-    delay(50);
+    FastLED.delay(50);
   }
 }
 
@@ -233,22 +263,22 @@ void chase_up(int r, int g, int b, int ms){
   for (int i = 0; i < NUM_LEDS; ++i){
     leds[i].setRGB(r,g,b);
     FastLED.show();
-    delay(ms);
+    FastLED.delay(ms);
     leds[i].setRGB(0,0,0);
     FastLED.show();
   }
-  delay(2*ms);
+  FastLED.delay(2*ms);
 }
 
 void chase_down(int r, int g, int b, int ms){
   for (int i = NUM_LEDS - 1; i >= 0; --i){
     leds[i].setRGB(r,g,b);
     FastLED.show();
-    delay(ms);
+    FastLED.delay(ms);
     leds[i].setRGB(0,0,0);
     FastLED.show();
   }
-  delay(2*ms);
+  FastLED.delay(2*ms);
 }
 
 void spell_alphabet(){
@@ -263,11 +293,10 @@ void spell(String str){
     char c = tolower(str[i]);
     int val = c;
     if (c == 32){
-      Serial.println("a space");
-      delay(500);
+      FastLED.delay(500);
     }
     else if ((c >= 97) && (c <=122)){
-      show_letter(c-97); //TODO map this to position of letter in chain
+      show_letter(alpha_map[c]);
     }
   }
 }
@@ -279,32 +308,32 @@ void show_letter(int letter){
   if (flick_on > 0){
     FastLED.setBrightness(MASTER_BRIGHTNESS/3);
     FastLED.show();
-    delay(100);
+    FastLED.delay(100);
     if (flick_on == 1){
       FastLED.setBrightness(MASTER_BRIGHTNESS/2);
       FastLED.show();
-      delay(75);
+      FastLED.delay(75);
     }
     FastLED.setBrightness(MASTER_BRIGHTNESS);
   }
   //display letter
   FastLED.show();
-  delay(500);
+  FastLED.delay(500);
   //sometimes "flicker" letter off
   int flick_off = rand() % 4;
   if (flick_off > 1){
     FastLED.setBrightness(MASTER_BRIGHTNESS/2);
     FastLED.show();
-    delay(75);
+    FastLED.delay(75);
     if (flick_off == 2){
       FastLED.setBrightness(MASTER_BRIGHTNESS/4);
       FastLED.show();
-      delay(50);
+      FastLED.delay(50);
     }
     FastLED.setBrightness(MASTER_BRIGHTNESS);
   }
   //turn letter off
   leds[letter].setRGB(0,0,0);
   FastLED.show();
-  delay(300);
+  FastLED.delay(300);
 }
